@@ -1,0 +1,149 @@
+module radvd {
+  namespace "urn:radvd";
+  prefix "rd";
+
+  description "YANG model for radvd configuration";
+
+  container radvd {
+    list interface {
+      key "name";
+      leaf name {
+        type string;
+        description "Interface name (e.g., eth1)";
+      }
+      
+      leaf AdvSendAdvert {
+        type enumeration {
+          enum on;
+          enum off;
+        }
+        default "on";
+        description "Whether to send router advertisements";
+      }
+
+      leaf MinRtrAdvInterval {
+        type uint32;
+        description "Minimum Router Advertisement Interval";
+      }
+
+      leaf MaxRtrAdvInterval {
+        type uint32;
+        description "Maximum Router Advertisement Interval";
+      }
+
+      leaf AdvManagedFlag {
+        type enumeration {
+          enum on;
+          enum off;
+        }
+        default "off";
+        description "Managed flag for DHCPv6";
+      }
+
+      leaf AdvOtherConfigFlag {
+        type enumeration {
+          enum on;
+          enum off;
+        }
+        default "off";
+        description "Other configuration flag for DHCPv6";
+      }
+
+      container prefix {
+        leaf AdvOnLink {
+          type enumeration {
+            enum on;
+            enum off;
+          }
+          default "on";
+          description "On-link flag for the prefix";
+        }
+
+        leaf AdvAutonomous {
+          type enumeration {
+            enum on;
+            enum off;
+          }
+          default "on";
+          description "Autonomous address configuration flag";
+        }
+
+        leaf AdvRouterAddr {
+          type enumeration {
+            enum on;
+            enum off;
+          }
+          default "on";
+          description "Router address flag";
+        }
+
+        leaf AdvValidLifetime {
+          type uint32;
+          description "Valid lifetime of the prefix in seconds";
+        }
+
+        leaf prefix {
+          type string;
+          description "IPv6 prefix to advertise";
+        }
+      }
+
+      container RDNSS {
+        leaf AdvRDNSSLifetime {
+          type uint32;
+          description "RDNSS lifetime in seconds";
+        }
+
+        leaf dns-server {
+          type string;
+          description "DNS server address";
+        }
+      }
+
+      leaf AdvDefaultLifetime {
+        type uint32;
+        description "Default lifetime for router advertisements";
+      }
+
+      leaf AdvDefaultPreference {
+        type enumeration {
+          enum high;
+          enum medium;
+          enum low;
+        }
+        description "Preference for the default route";
+      }
+
+      container route {
+        leaf AdvRouteLifetime {
+          type uint32;
+          description "Route lifetime for the specific prefix";
+        }
+
+        leaf AdvRoutePreference {
+          type enumeration {
+            enum high;
+            enum medium;
+            enum low;
+          }
+          description "Preference for the specific route";
+        }
+
+        leaf destination-prefix {
+          type string;
+          description "Destination IPv6 prefix";
+        }
+      }
+
+      container clients {
+        list client {
+          key "ipv6-address";
+          leaf ipv6-address {
+            type string;
+            description "IPv6 link-local address of the client";
+          }
+        }
+      }
+    }
+  }
+}
