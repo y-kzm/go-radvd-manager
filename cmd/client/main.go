@@ -1,70 +1,84 @@
 package main
 
 import (
-	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
-	"os"
-	"strconv"
 
-	"github.com/y-kzm/go-radvd-manager/internal"
+	//"github.com/y-kzm/go-radvd-manager/internal/client"
+	"github.com/y-kzm/go-radvd-manager/internal/config"
+)
+
+const (
+	port = 8888
 )
 
 func main() {
-	client := internal.NewClient("http://localhost:8888")
+	//hostFlag := flag.String("h", "localhost", "Hostname")
+	//methodFlag := flag.String("X", "", "HTTP Method (POST, GET, DELETE)")
+	fileFlag := flag.String("f", "", "Config file")
+	idFlag := flag.Int("i", -1, "Instance ID")
+	flag.Parse()
 
-	if len(os.Args) < 2 {
-		log.Fatal("Usage: create/get")
+	//client := client.NewClient(fmt.Sprintf("http://%s:%d", *hostFlag, port))
+	if *idFlag == -1 {
+		log.Fatal("Usage: -i <id> is required")
 	}
 
-	switch os.Args[1] {
-	case "create":
-		if len(os.Args) < 4 {
-			log.Fatal("Usage: create <id> <config>")
-		}
-		config, err := os.ReadFile(os.Args[3])
-		if err != nil {
-			log.Fatalf("Failed to read config file: %v", err)
-		}
-		id, err := strconv.Atoi(os.Args[2])
-		if err != nil {
-			log.Fatalf("Failed to parse id: %v", err)
-		}
-		if err := client.Create(id, string(config)); err != nil {
-			log.Fatalf("Failed to create radvd instance: %v", err)
-		}
-		fmt.Println("radvd instance created successfully")
-	case "get":
-		if len(os.Args) < 3 {
-			log.Fatal("Usage: get <id>")
-		}
-		id, err := strconv.Atoi(os.Args[2])
-		if err != nil {
-			log.Fatalf("Failed to parse id: %v", err)
-		}
-		config, err := client.Get(id)
-		if err != nil {
-			log.Fatalf("Failed to get radvd instance: %v", err)
-		}
-		var data map[string]string
-		if err := json.Unmarshal([]byte(config), &data); err != nil {
-			log.Fatalf("Failed to unmarshal config: %v", err)
-		}
-
-		fmt.Println(data["config"])
-	case "delete":
-		if len(os.Args) < 3 {
-			log.Fatal("Usage: delete <id>")
-		}
-		id, err := strconv.Atoi(os.Args[2])
-		if err != nil {
-			log.Fatalf("Failed to parse id: %v", err)
-		}
-		if err := client.Delete(id); err != nil {
-			log.Fatalf("Failed to delete radvd instance: %v", err)
-		}
-		fmt.Println("radvd instance deleted successfully")
-	default:
-		log.Fatal("Unknown command")
+	// 設定ファイルを読み込む
+	cfg, err := config.LoadPolicyConfig(*fileFlag)
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
 	}
+
+	// パースされたルールとポリシーを表示する
+	fmt.Println("Rules:")
+	for _, rule := range cfg.Rules {
+		fmt.Printf("ID: %d, Type: %s, FQDN: %s, Prefix: %s, Nexthop: %s\n",
+			rule.ID, rule.Type, rule.FQDNs, rule.Prefixes, rule.Nexthop)
+	}
+
+	fmt.Println("\nPolicies:")
+	for _, policy := range cfg.Policies {
+		fmt.Printf("ID: %d, Description: %s, Rules: %v, Clients: %v\n",
+			policy.ID, policy.Description, policy.Rules, policy.Clients)
+	}
+
+	/*
+
+		switch *methodFlag {
+		case "POST":
+			if *fileFlag == "" {
+				log.Fatal("Usage: -X POST -f <config_file> -i <id> -h <hostname>")
+			}
+			config, err := os.ReadFile(*fileFlag)
+			if err != nil {
+				log.Fatalf("Failed to read config file: %v", err)
+			}
+			if err := client.Create(*idFlag, string(config)); err != nil {
+				log.Fatalf("Failed to create radvd instance: %v", err)
+			}
+			fmt.Println("radvd instance created successfully")
+
+		case "GET":
+			config, err := client.Get(*idFlag)
+			if err != nil {
+				log.Fatalf("Failed to get radvd instance: %v", err)
+			}
+			var data map[string]string
+			if err := json.Unmarshal([]byte(config), &data); err != nil {
+				log.Fatalf("Failed to unmarshal config: %v", err)
+			}
+			fmt.Println(data["config"])
+
+		case "DELETE":
+			if err := client.Delete(*idFlag); err != nil {
+				log.Fatalf("Failed to delete radvd instance: %v", err)
+			}
+			fmt.Println("radvd instance deleted successfully")
+
+		default:
+			log.Fatalf("Unknown or unsupported method: %s. Use POST, GET, or DELETE", *methodFlag)
+		}
+	*/
 }

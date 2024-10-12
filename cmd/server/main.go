@@ -3,11 +3,11 @@ package main
 import (
 	"log/slog"
 
-	"github.com/y-kzm/go-radvd-manager/internal"
+	"github.com/y-kzm/go-radvd-manager/internal/server"
 )
 
 func main() {
-	server := internal.NewServer("localhost:8888", slog.With("component", "apiServer"))
+	server := server.NewServer("localhost:8888", slog.With("component", "apiServer"))
 
 	slog.Info("Starting HTTP server")
 
