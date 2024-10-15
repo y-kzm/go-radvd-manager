@@ -61,16 +61,20 @@ func main() {
 	switch *methodFlag {
 	case "POST":
 		for _, radvdConfig := range radvdConfigs {
-			config, err := os.ReadFile(radvdConfig.FilePath)
+			file, err := os.ReadFile(radvdConfig.FilePath)
 			if err != nil {
 				log.Fatalf("Failed to read config file: %v", err)
 			}
-			for _, client := range clients {
-				if client.Server == radvdConfig.Rule.Nexthop {
-					if err := client.Create(radvdConfig.Rule.ID, string(config)); err != nil {
-						log.Fatalf("Failed to create radvd instance: %v", err)
+			for _, policy := range cfg.Policies {
+				if config.ContainsInt(policy.Rules, radvdConfig.Rule.ID) {
+					for _, client := range clients {
+						if client.Server == radvdConfig.Rule.Nexthop {
+							if err := client.Create(radvdConfig.Rule.ID, string(file)); err != nil {
+								log.Fatalf("Failed to create radvd instance: %v", err)
+							}
+							fmt.Printf("radvd instance created successfully (%d)\n", radvdConfig.Rule.ID)
+						}
 					}
-					fmt.Printf("radvd instance created successfully (%d)\n", radvdConfig.Rule.ID)
 				}
 			}
 		}
