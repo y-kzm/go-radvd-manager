@@ -51,7 +51,7 @@ func (c *Config) GenerateRadvdConfigFile() ([]RadvdConfig, error) {
 		fileName := fmt.Sprintf("%s(%d).conf", radvdConfig.Rule.Nexthop, radvdConfig.Rule.ID)
 		radvdConfig.FilePath = outputPath + fileName
 		radvdConfig.AdvDefaultLifetime = AdvDefaultLifetime
-		radvdConfig.AdvDefaultPreference = "mideum"
+		radvdConfig.AdvDefaultPreference = "medium"
 
 		if rule.Type == "Prefixes" && !ContainsStr(rule.Prefixes, "::/0") {
 			radvdConfig.Routes = append(radvdConfig.Routes, rule.Prefixes...)
