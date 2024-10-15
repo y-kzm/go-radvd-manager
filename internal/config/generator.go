@@ -22,7 +22,16 @@ type RadvdConfig struct {
 	Clients              []string
 }
 
-func contains(slice []string, item string) bool {
+func ContainsStr(slice []string, item string) bool {
+	for _, v := range slice {
+		if v == item {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsInt(slice []int, item int) bool {
 	for _, v := range slice {
 		if v == item {
 			return true
@@ -44,7 +53,7 @@ func (c *Config) GenerateRadvdConfigFile() ([]RadvdConfig, error) {
 		radvdConfig.AdvDefaultLifetime = AdvDefaultLifetime
 		radvdConfig.AdvDefaultPreference = "mideum"
 
-		if rule.Type == "Prefixes" && !contains(rule.Prefixes, "::/0") {
+		if rule.Type == "Prefixes" && !ContainsStr(rule.Prefixes, "::/0") {
 			radvdConfig.Routes = append(radvdConfig.Routes, rule.Prefixes...)
 		} else if len(rule.Prefixes) == 1 && rule.Prefixes[0] == "::/0" {
 			radvdConfig.AdvDefaultPreference = "high"
