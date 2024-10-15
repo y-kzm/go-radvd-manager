@@ -70,9 +70,9 @@ func main() {
 					if err := client.Create(radvdConfig.Rule.ID, string(config)); err != nil {
 						log.Fatalf("Failed to create radvd instance: %v", err)
 					}
+					fmt.Printf("radvd instance created successfully (%d)\n", radvdConfig.Rule.ID)
 				}
 			}
-			fmt.Printf("radvd instance created successfully (%d)", radvdConfig.Rule.ID)
 		}
 		fmt.Println("radvd instances created successfully (all)")
 	case "GET":
