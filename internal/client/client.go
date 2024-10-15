@@ -7,17 +7,23 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+
+	"github.com/y-kzm/go-radvd-manager/internal/config"
 )
 
 type RadvdManagerClient struct {
 	*http.Client
-	host string
+	host   string
+	Server string
+	Port   int
 }
 
-func NewClient(host string) *RadvdManagerClient {
+func NewClient(host string, server string, port int) *RadvdManagerClient {
 	return &RadvdManagerClient{
 		Client: &http.Client{},
 		host:   host,
+		Server: server,
+		Port:   port,
 	}
 }
 
@@ -89,4 +95,18 @@ func (c *RadvdManagerClient) Delete(id int) error {
 	}
 
 	return nil
+}
+
+func GetSeverList(radvdConfigs []config.RadvdConfig) []string {
+	uniqueSevers := make(map[string]struct{})
+	for _, radvdConfig := range radvdConfigs {
+		uniqueSevers[radvdConfig.Rule.Nexthop] = struct{}{}
+	}
+
+	var servers []string
+	for server := range uniqueSevers {
+		servers = append(servers, server)
+	}
+
+	return servers
 }
