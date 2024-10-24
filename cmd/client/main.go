@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/y-kzm/go-radvd-manager/internal/client"
 	"github.com/y-kzm/go-radvd-manager/internal/config"
@@ -57,6 +58,8 @@ func main() {
 		return
 	}
 
+	var wg sync.WaitGroup
+
 	// send request
 	switch *methodFlag {
 	case "POST":
@@ -67,17 +70,26 @@ func main() {
 			}
 			for _, policy := range cfg.Policies {
 				if config.ContainsInt(policy.Rules, radvdConfig.Rule.ID) {
-					for _, client := range clients {
-						if client.Server == radvdConfig.Rule.Nexthop {
-							if err := client.Create(radvdConfig.Rule.ID, string(file)); err != nil {
-								log.Fatalf("Failed to create radvd instance: %v", err)
-							}
-							fmt.Printf("radvd instance created successfully (%d)\n", radvdConfig.Rule.ID)
+					for _, c := range clients {
+						if c.Server == radvdConfig.Rule.Nexthop {
+							wg.Add(1)
+							go func(client *client.RadvdManagerClient, id int, file string) {
+								defer wg.Done()
+								if err := client.Create(id, file); err != nil {
+									log.Fatalf("Failed to create radvd instance: %v", err)
+								}
+								fmt.Printf("radvd instance created successfully (%d)\n", id)
+							}(c, radvdConfig.Rule.ID, string(file))
+							// if err := client.Create(radvdConfig.Rule.ID, string(file)); err != nil {
+							// 	log.Fatalf("Failed to create radvd instance: %v", err)
+							// }
+							// fmt.Printf("radvd instance created successfully (%d)\n", radvdConfig.Rule.ID)
 						}
 					}
 				}
 			}
 		}
+		wg.Wait()
 		fmt.Println("radvd instances created successfully (all)")
 	case "GET":
 		// not implemented
