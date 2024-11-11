@@ -1,0 +1,464 @@
+package radvd
+
+import (
+	"log"
+	"net"
+)
+
+// Radvd represents the root of the radvd configuration.
+type Radvd struct {
+	Interfaces []Interface `json:"interfaces"`
+}
+
+// Interface represents each interface configuration in radvd.
+type Interface struct {
+	Instance          uint32   `json:"instance"`
+	Name              string   `json:"name"`
+	SendAdvert        bool     `json:"send_advert"`
+	MinRtrAdvInterval uint32   `json:"min_rtr_adv_interval"`
+	MaxRtrAdvInterval uint32   `json:"max_rtr_adv_interval"`
+	ManagedFlag       bool     `json:"managed_flag"`
+	OtherConfigFlag   bool     `json:"other_config_flag"`
+	DefaultLifetime   uint32   `json:"default_lifetime"`
+	DefaultPreference string   `json:"default_preference"` // Preferably enum or constants for "low", "medium", "high"
+	Prefixes          []Prefix `json:"prefixes"`
+	Rdnss             []RDNSS  `json:"rdnss"`
+	Routes            []Route  `json:"routes"`
+	Clients           []Client `json:"clients"`
+}
+
+// Prefix represents each prefix configuration for an interface.
+type Prefix struct {
+	Prefix        string `json:"prefix"`
+	OnLink        bool   `json:"on_link"`
+	Autonomous    bool   `json:"autonomous"`
+	RouterAddr    bool   `json:"router_addr"`
+	ValidLifetime uint32 `json:"valid_lifetime"`
+}
+
+// RDNSS represents each RDNSS (Recursive DNS Server) entry.
+type RDNSS struct {
+	Address  string `json:"address"` // Changed from net.IP to string for JSON compatibility
+	Lifetime uint32 `json:"lifetime"`
+}
+
+// Route represents each route configuration for an interface.
+type Route struct {
+	Route      string `json:"route"`
+	Lifetime   uint32 `json:"lifetime"`
+	Preference string `json:"preference"` // Preferably enum or constants for "low", "medium", "high"
+}
+
+// Client represents each client entry in the configuration.
+type Client struct {
+	Client string `json:"client"` // Changed from net.IP to string for JSON compatibility
+}
+
+func New() *Radvd {
+	r := &Radvd{
+		Interfaces: []Interface{
+			{
+				Instance:          1,
+				Name:              "eth0",
+				SendAdvert:        true,
+				MinRtrAdvInterval: 5,
+				MaxRtrAdvInterval: 15,
+				ManagedFlag:       false,
+				OtherConfigFlag:   true,
+				DefaultLifetime:   1800,
+				DefaultPreference: "medium",
+				Prefixes: []Prefix{
+					{
+						Prefix:        "2001:db8::/64",
+						OnLink:        true,
+						Autonomous:    true,
+						RouterAddr:    true,
+						ValidLifetime: 86400,
+					},
+				},
+				Rdnss: []RDNSS{
+					{
+						Address:  net.ParseIP("2001:db8::1").String(),
+						Lifetime: 1800,
+					},
+				},
+				Routes: []Route{
+					{
+						Route:      "2001:db8:1::/64",
+						Lifetime:   300,
+						Preference: "medium",
+					},
+				},
+				Clients: []Client{
+					{
+						Client: net.ParseIP("2001:db8::2").String(),
+					},
+				},
+			},
+			{
+				Instance:          2,
+				Name:              "eth1",
+				SendAdvert:        false,
+				MinRtrAdvInterval: 10,
+				MaxRtrAdvInterval: 20,
+				ManagedFlag:       true,
+				OtherConfigFlag:   false,
+				DefaultLifetime:   1200,
+				DefaultPreference: "high",
+				Prefixes: []Prefix{
+					{
+						Prefix:        "2001:db8:1::/64",
+						OnLink:        true,
+						Autonomous:    false,
+						RouterAddr:    false,
+						ValidLifetime: 43200,
+					},
+				},
+				Rdnss: []RDNSS{
+					{
+						Address:  net.ParseIP("2001:db8:1::1").String(),
+						Lifetime: 1200,
+					},
+				},
+				Routes: []Route{
+					{
+						Route:      "2001:db8:2::/64",
+						Lifetime:   600,
+						Preference: "low",
+					},
+				},
+				Clients: []Client{
+					{
+						Client: net.ParseIP("2001:db8:1::2").String(),
+					},
+				},
+			},
+		},
+	}
+	return r
+}
+
+// Restart, Stop, Start, and OnStatusUpdate would be methods of Radvd to control radvd daemon and handle events.
+func (r *Radvd) Restart() {
+	// Custom logic to restart the radvd daemon
+	log.Println("Restarting radvd daemon")
+}
+
+func (r *Radvd) Stop() {
+	// Custom logic to stop the radvd daemon
+	log.Println("Stopping radvd daemon")
+}
+
+func (r *Radvd) Start() {
+	// Custom logic to start the radvd daemon
+	log.Println("Starting radvd daemon")
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+module radvd {
+  namespace "http://example.com/radvd";
+  prefix "radvd";
+
+  import ietf-inet-types {
+    prefix "inet";
+  }
+
+  description "YANG model for radvd configuration";
+
+  list interfaces {
+    key "instance";
+    leaf instance {
+      type uint32;
+      description "Instance ID";
+    }
+    leaf name {
+      type string;
+      description "Interface name";
+    }
+    leaf send_advert {
+      type boolean;
+      description "AdvSendAdvert";
+      default "true";
+    }
+    leaf min_rtr_adv_interval {
+      type uint32;
+      description "MinRtrAdvInterval";
+      default "3";
+    }
+    leaf max_rtr_adv_interval {
+      type uint32;
+      description "MaxRtrAdvInterval";
+      default "10";
+    }
+    leaf managed_flag {
+      type boolean;
+      description "AdvManagedFlag";
+      default "false";
+    }
+    leaf other_config_flag {
+      type boolean;
+      description "AdvOtherConfigFlag";
+      default "false";
+    }
+    leaf default_lifetime {
+      type uint32;
+      description "AdvDefaultLifetime";
+      default "1800";
+    }
+    leaf default_preference {
+      type string;
+      description "AdvDefaultPreference";
+      default "medium";
+    }
+
+    list prefixes {
+      key "prefix";
+      description "Prefix list";
+      leaf prefix {
+        type string;
+        description "Prefix";
+      }
+      leaf on_link {
+        type boolean;
+        description "AdvOnLink";
+        default "true";
+      }
+      leaf autonomous {
+        type boolean;
+        description "AdvAutonomous";
+        default "true";
+      }
+      leaf router_addr {
+        type boolean;
+        description "AdvRouterAddr";
+        default "true";
+      }
+      leaf valid_lifetime {
+        type uint32;
+        description "AdvValidLifetime";
+        default "86400";
+      }
+    }
+  
+    list rdnss {
+      key "address";
+      description "RDNSS list";
+      leaf address {
+        type inet:ipv6-address;
+        description "RDNSS address";
+      }
+      leaf lifetime {
+        type uint32;
+        description "AdvRDNSSLifetime";
+        default "1800";
+      }
+    }
+
+    list routes {
+      key "route";
+      description "Route list";
+      leaf route {
+        type string;
+        description "Route";
+      }
+      leaf lifetime {
+        type uint32;
+        description "AdvRouteLifetime";
+        default "300";
+      }
+      leaf preference {
+        type string;
+        description "AdvRoutePreference";
+        default "medium";
+      }
+    }
+
+    list clients {
+      key "client";
+      description "Client list";
+      leaf client {
+        type inet:ipv6-address;
+        description "Client address";
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+	r := &Radvd{
+		Interfaces: []*Interface{
+			{
+				Instance:             1,
+				Name:                 "eth0",
+				AdvSendAdvert:        true,
+				MinRtrAdvInterval:    5,
+				MaxRtrAdvInterval:    15,
+				AdvManagedFlag:       false,
+				AdvOtherConfigFlag:   true,
+				AdvDefaultLifetime:   1800,
+				AdvDefaultPreference: "medium",
+				Prefixes: []*Prefix{
+					{
+						Prefix:           "2001:db8:1::/64",
+						AdvOnLink:        true,
+						AdvAutonomous:    true,
+						AdvRouterAddr:    true,
+						AdvValidLifetime: 3600,
+					},
+				},
+				Rdnss: []*RDNSS{
+					{
+						Address:          net.ParseIP("2001:db8:1::1").String(),
+						AdvRdnssLifetime: 3600,
+					},
+				},
+				Routes: []*Route{
+					{
+						Route:              "2001:db8:f::/64",
+						AdvRouteLifetime:   3600,
+						AdvRoutePreference: "low",
+					},
+				},
+				Clients: []string{
+					"2001:db8:2::f",
+					"2001:db8:2::e",
+				},
+			},
+			{
+				Instance:             2,
+				Name:                 "eth1",
+				AdvSendAdvert:        false,
+				MinRtrAdvInterval:    10,
+				MaxRtrAdvInterval:    20,
+				AdvManagedFlag:       true,
+				AdvOtherConfigFlag:   false,
+				AdvDefaultLifetime:   1200,
+				AdvDefaultPreference: "high",
+				Prefixes: []*Prefix{
+					{
+						Prefix:           "2001:db8:2::/64",
+						AdvOnLink:        true,
+						AdvAutonomous:    true,
+						AdvRouterAddr:    true,
+						AdvValidLifetime: 1800,
+					},
+				},
+				Rdnss: []*RDNSS{
+					{
+						Address:          net.ParseIP("2001:db8:2::1").String(),
+						AdvRdnssLifetime: 1800,
+					},
+				},
+				Routes: []*Route{
+					{
+						Route:              "2001:db8:e::/64",
+						AdvRouteLifetime:   3600,
+						AdvRoutePreference: "low",
+					},
+				},
+				Clients: []string{
+					"2001:db8:1::f",
+					"2001:db8:1::e",
+				},
+			},
+		},
+	}	r := &Radvd{
+		Interfaces: []*Interface{
+			{
+				Instance:             1,
+				Name:                 "eth0",
+				AdvSendAdvert:        true,
+				MinRtrAdvInterval:    5,
+				MaxRtrAdvInterval:    15,
+				AdvManagedFlag:       false,
+				AdvOtherConfigFlag:   true,
+				AdvDefaultLifetime:   1800,
+				AdvDefaultPreference: "medium",
+				Prefixes: []*Prefix{
+					{
+						Prefix:           "2001:db8:1::/64",
+						AdvOnLink:        true,
+						AdvAutonomous:    true,
+						AdvRouterAddr:    true,
+						AdvValidLifetime: 3600,
+					},
+				},
+				Rdnss: []*RDNSS{
+					{
+						Address:          net.ParseIP("2001:db8:1::1").String(),
+						AdvRdnssLifetime: 3600,
+					},
+				},
+				Routes: []*Route{
+					{
+						Route:              "2001:db8:f::/64",
+						AdvRouteLifetime:   3600,
+						AdvRoutePreference: "low",
+					},
+				},
+				Clients: []string{
+					"2001:db8:2::f",
+					"2001:db8:2::e",
+				},
+			},
+			{
+				Instance:             2,
+				Name:                 "eth1",
+				AdvSendAdvert:        false,
+				MinRtrAdvInterval:    10,
+				MaxRtrAdvInterval:    20,
+				AdvManagedFlag:       true,
+				AdvOtherConfigFlag:   false,
+				AdvDefaultLifetime:   1200,
+				AdvDefaultPreference: "high",
+				Prefixes: []*Prefix{
+					{
+						Prefix:           "2001:db8:2::/64",
+						AdvOnLink:        true,
+						AdvAutonomous:    true,
+						AdvRouterAddr:    true,
+						AdvValidLifetime: 1800,
+					},
+				},
+				Rdnss: []*RDNSS{
+					{
+						Address:          net.ParseIP("2001:db8:2::1").String(),
+						AdvRdnssLifetime: 1800,
+					},
+				},
+				Routes: []*Route{
+					{
+						Route:              "2001:db8:e::/64",
+						AdvRouteLifetime:   3600,
+						AdvRoutePreference: "low",
+					},
+				},
+				Clients: []string{
+					"2001:db8:1::f",
+					"2001:db8:1::e",
+				},
+			},
+		},
+	}

@@ -1,98 +1,39 @@
+/**
+ * Generate radvd configuration file from radvd.Interface struct using template.
+ *
+ */
 package config
 
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"text/template"
+
+	"github.com/y-kzm/go-radvd-manager/internal/radvd"
 )
 
 const (
-	templatePath       = "./template/radvd_template.conf"
-	outputPath         = "./output/"
-	AdvDefaultLifetime = 540
+	templatePath = "../../configs/template/radvd_template.conf"
 )
 
-type RadvdConfig struct {
-	Rule                 Rule
-	isDefault            bool
-	FilePath             string
-	AdvDefaultLifetime   int
-	AdvDefaultPreference string
-	Routes               []string
-	Clients              []string
-}
-
-func ContainsStr(slice []string, item string) bool {
-	for _, v := range slice {
-		if v == item {
-			return true
-		}
-	}
-	return false
-}
-
-func ContainsInt(slice []int, item int) bool {
-	for _, v := range slice {
-		if v == item {
-			return true
-		}
-	}
-	return false
-}
-
-func (c *Config) GenerateRadvdConfigFile() ([]RadvdConfig, error) {
-	var radvdConfigs []RadvdConfig
-
-	// policy config to radvd config
-	for _, rule := range c.Rules {
-		var radvdConfig RadvdConfig
-		radvdConfig.Rule = rule
-		radvdConfig.isDefault = false
-		fileName := fmt.Sprintf("%s(%d).conf", radvdConfig.Rule.Nexthop, radvdConfig.Rule.ID)
-		radvdConfig.FilePath = outputPath + fileName
-		radvdConfig.AdvDefaultLifetime = AdvDefaultLifetime
-		radvdConfig.AdvDefaultPreference = "medium"
-
-		if rule.Type == "Prefixes" && !ContainsStr(rule.Prefixes, "::/0") {
-			radvdConfig.Routes = append(radvdConfig.Routes, rule.Prefixes...)
-		} else if len(rule.Prefixes) == 1 && rule.Prefixes[0] == "::/0" {
-			radvdConfig.AdvDefaultPreference = "high"
-			radvdConfig.isDefault = true
-		} else {
-			return nil, fmt.Errorf("invalid rule type: %s", rule.Type)
-		}
-
-		radvdConfigs = append(radvdConfigs, radvdConfig)
-	}
-
-	// apply clients
-	for _, policy := range c.Policies {
-		for _, ruleID := range policy.Rules {
-			for i, radvdConfig := range radvdConfigs {
-				if radvdConfig.Rule.ID == ruleID {
-					radvdConfigs[i].Clients = append(radvdConfigs[i].Clients, policy.Clients...)
-				}
-			}
-		}
-	}
-
+func GenerateRadvdConfigFile(iface *radvd.Interface) error {
 	tmpl, err := template.ParseFiles(templatePath)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to parse template: %v", err)
 	}
 
-	// generate radvd config files
-	for _, radvdConfig := range radvdConfigs {
-		file, err := os.Create(radvdConfig.FilePath)
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-		err = tmpl.Execute(file, radvdConfig)
-		if err != nil {
-			return nil, err
-		}
+	instanceStr := strconv.Itoa(int(iface.Instance))
+	file, err := os.Create("/etc/radvd.d/" + instanceStr + ".conf")
+	if err != nil {
+		return fmt.Errorf("failed to create file: %v", err)
+	}
+	defer file.Close()
+
+	err = tmpl.Execute(file, iface)
+	if err != nil {
+		return fmt.Errorf("failed to execute template: %v", err)
 	}
 
-	return radvdConfigs, nil
+	return nil
 }
