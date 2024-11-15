@@ -81,9 +81,9 @@ func main() {
 	case "get":
 		for _, c := range clients {
 			wg.Add(1)
-			go func(client *client.RadvdManagerClient) {
+			go func(c *client.RadvdManagerClient) {
 				defer wg.Done()
-				radvd, err := client.GetAllInstance()
+				radvd, err := c.GetAllInstance()
 				if err != nil {
 					log.Fatalf("Failed to get radvd instance: %v", err)
 				}
@@ -100,9 +100,9 @@ func main() {
 			for _, iface := range radvd.Interfaces {
 				if iface.Nexthop == c.Server {
 					wg.Add(1)
-					go func(client *client.RadvdManagerClient, iface *radvdInterfaceAlias) {
+					go func(c *client.RadvdManagerClient, iface *radvdInterfaceAlias) {
 						defer wg.Done()
-						if err := client.CreateInstance(int(iface.Instance), iface); err != nil {
+						if err := c.CreateInstance(int(iface.Instance), iface); err != nil {
 							log.Fatalf("Failed to apply radvd instance: %v", err)
 						}
 						fmt.Println("radvd instance applied successfully")
@@ -116,9 +116,9 @@ func main() {
 			for _, iface := range radvd.Interfaces {
 				if iface.Nexthop == c.Server {
 					wg.Add(1)
-					go func(client *client.RadvdManagerClient, iface *radvdInterfaceAlias) {
+					go func(c *client.RadvdManagerClient, iface *radvdInterfaceAlias) {
 						defer wg.Done()
-						if err := client.UpdateInstance(int(iface.Instance), iface); err != nil {
+						if err := c.UpdateInstance(int(iface.Instance), iface); err != nil {
 							log.Fatalf("Failed to update radvd instance: %v", err)
 						}
 						fmt.Println("radvd instance updated successfully")
@@ -130,9 +130,9 @@ func main() {
 	case "delete":
 		for _, c := range clients {
 			wg.Add(1)
-			go func(client *client.RadvdManagerClient) {
+			go func(c *client.RadvdManagerClient) {
 				defer wg.Done()
-				err := client.DeleteAllInstance()
+				err := c.DeleteAllInstance()
 				if err != nil {
 					log.Fatalf("Failed to delete radvd instances: %v", err)
 				}
