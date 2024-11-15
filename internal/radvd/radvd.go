@@ -154,5 +154,9 @@ func StopRadvd(instance int) error {
 		return fmt.Errorf("error removing PID file: %w", err)
 	}
 
+	if err := os.Remove("/etc/radvd.d/" + strconv.Itoa(instance) + ".conf"); err != nil {
+		return fmt.Errorf("error removing config file: %w", err)
+	}
+
 	return nil
 }

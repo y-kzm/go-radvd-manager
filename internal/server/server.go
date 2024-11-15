@@ -221,7 +221,7 @@ func (s *RadvdManagerServer) handleRadvdInterfaces(w http.ResponseWriter, r *htt
 			return
 		}
 
-		/* stop radvd adn delete radvd config */
+		/* stop radvd and delete radvd config */
 		if err = radvd.StopRadvd(int(existing.Instance)); err != nil {
 			s.logger.Error("Failed to stop radvd", "error", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
