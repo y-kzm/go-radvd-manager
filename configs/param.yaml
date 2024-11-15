@@ -1,0 +1,39 @@
+# default parameters for radvd
+interfaces:
+  - nexthop: "fc00:abcd::a"
+    name: "eth1"
+    adv_send_advert: true
+    min_rtr_adv_interval: 3
+    max_rtr_adv_interval: 10
+    adv_managed_flag: false
+    adv_other_config_flag: false
+    adv_default_lifetime: 1800
+    adv_default_preference: "medium"
+    prefixes:
+      - prefix: "fc00:abcd::/64"
+        adv_on_link: true
+        adv_autonomous: true
+        adv_router_addr: true
+        adv_valid_lifetime: 86400
+    rdnss:
+      - address: "2001:2f8:1c1:51::8529:402"
+        adv_rdnss_lifetime: 1800
+
+  - nexthop: "fc00:abcd::b"
+    name: "eth1"
+    adv_send_advert: true
+    min_rtr_adv_interval: 3
+    max_rtr_adv_interval: 10
+    adv_managed_flag: false
+    adv_other_config_flag: false
+    adv_default_lifetime: 1800
+    adv_default_preference: "medium"
+    prefixes:
+      - prefix: "fc00:abcd::/64"
+        adv_on_link: true
+        adv_autonomous: true
+        adv_router_addr: true
+        adv_valid_lifetime: 86400
+    rdnss:
+      - address: "2001:2f8:1c1:51::8529:402"
+        adv_rdnss_lifetime: 1800
