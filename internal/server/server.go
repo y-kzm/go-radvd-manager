@@ -86,7 +86,7 @@ func (s *RadvdManagerServer) handleRadvdInterfaces(w http.ResponseWriter, r *htt
 		w.Header().Set("Content-Type", "application/json")
 		if !ok {
 			s.logger.Info("Returning all interfaces")
-			if err := json.NewEncoder(w).Encode(s.radvd.Interfaces); err != nil {
+			if err := json.NewEncoder(w).Encode(s.radvd); err != nil {
 				s.logger.Error("Failed to encode JSON", "error", err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
