@@ -138,14 +138,14 @@ func parseRadvdConf(filePath string, instance int) (*radvd.Interface, error) {
 }
 
 // TODO: Check correspondence with /var/run/radvd/*.
-func ParseRadvdConfigs() ([]*radvd.Interface, error) {
-	var interfaces []*radvd.Interface
+func ParseRadvdConfigs() (*radvd.Radvd, error) {
+	var radvd radvd.Radvd
 
 	iface, err := parseRadvdConf("/etc/radvd.conf", 0)
 	if err != nil {
 		return nil, err
 	}
-	interfaces = append(interfaces, iface)
+	radvd.Interfaces = append(radvd.Interfaces, iface)
 
 	dirPath := "/etc/radvd.d"
 	err = filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
@@ -163,7 +163,7 @@ func ParseRadvdConfigs() ([]*radvd.Interface, error) {
 			if err != nil {
 				return err
 			}
-			interfaces = append(interfaces, iface)
+			radvd.Interfaces = append(radvd.Interfaces, iface)
 		}
 		return nil
 	})
@@ -171,5 +171,5 @@ func ParseRadvdConfigs() ([]*radvd.Interface, error) {
 		return nil, err
 	}
 
-	return interfaces, nil
+	return &radvd, nil
 }

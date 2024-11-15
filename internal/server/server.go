@@ -24,8 +24,8 @@ import (
 
 type RadvdManagerServer struct {
 	http.Server
-	interfaces []*radvd.Interface
-	logger     *slog.Logger
+	radvd  *radvd.Radvd
+	logger *slog.Logger
 }
 
 func NewServer(host string, logger *slog.Logger) (*RadvdManagerServer, error) {
@@ -34,8 +34,8 @@ func NewServer(host string, logger *slog.Logger) (*RadvdManagerServer, error) {
 		return nil, fmt.Errorf("failed to parse existing radvd configurations: %v", err)
 	}
 	srv := &RadvdManagerServer{
-		interfaces: existing,
-		logger:     logger,
+		radvd:  existing,
+		logger: logger,
 	}
 
 	router := mux.NewRouter()
@@ -50,7 +50,7 @@ func NewServer(host string, logger *slog.Logger) (*RadvdManagerServer, error) {
 
 // for debugging
 func (s *RadvdManagerServer) printInterfaces() {
-	for _, iface := range s.interfaces {
+	for _, iface := range s.radvd.Interfaces {
 		jsonData, err := json.MarshalIndent(iface, "", "  ")
 		if err != nil {
 			log.Printf("Error marshaling interface to JSON: %v", err)
@@ -86,7 +86,7 @@ func (s *RadvdManagerServer) handleRadvdInterfaces(w http.ResponseWriter, r *htt
 		w.Header().Set("Content-Type", "application/json")
 		if !ok {
 			s.logger.Info("Returning all interfaces")
-			if err := json.NewEncoder(w).Encode(s.interfaces); err != nil {
+			if err := json.NewEncoder(w).Encode(s.radvd.Interfaces); err != nil {
 				s.logger.Error("Failed to encode JSON", "error", err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
@@ -94,7 +94,7 @@ func (s *RadvdManagerServer) handleRadvdInterfaces(w http.ResponseWriter, r *htt
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-		iface, err := getInterfaceByInstance(s.interfaces, uint32(instance))
+		iface, err := getInterfaceByInstance(s.radvd.Interfaces, uint32(instance))
 		if err != nil {
 			s.logger.Error("Failed to get interface", "error", err.Error())
 			w.WriteHeader(http.StatusNotFound)
@@ -112,7 +112,7 @@ func (s *RadvdManagerServer) handleRadvdInterfaces(w http.ResponseWriter, r *htt
 	case "POST":
 		s.logger.Info("[POST]", "from", r.RemoteAddr)
 		var iface radvd.Interface
-		if _, err := getInterfaceByInstance(s.interfaces, uint32(instance)); err == nil {
+		if _, err := getInterfaceByInstance(s.radvd.Interfaces, uint32(instance)); err == nil {
 			s.logger.Error("Interface already exists", "instance", instance)
 			w.WriteHeader(http.StatusConflict)
 			return
@@ -147,14 +147,14 @@ func (s *RadvdManagerServer) handleRadvdInterfaces(w http.ResponseWriter, r *htt
 			return
 		}
 
-		s.interfaces = append(s.interfaces, &iface)
+		s.radvd.Interfaces = append(s.radvd.Interfaces, &iface)
 		w.WriteHeader(http.StatusCreated)
 		//s.printInterfaces()
 		return
 	case "PUT":
 		s.logger.Info("[PUT]", "from", r.RemoteAddr)
 		var iface radvd.Interface
-		existing, err := getInterfaceByInstance(s.interfaces, uint32(instance))
+		existing, err := getInterfaceByInstance(s.radvd.Interfaces, uint32(instance))
 		if err != nil {
 			s.logger.Error("Interface not found", "instance", instance)
 			w.WriteHeader(http.StatusNotFound)
@@ -199,7 +199,7 @@ func (s *RadvdManagerServer) handleRadvdInterfaces(w http.ResponseWriter, r *htt
 		if !ok {
 			s.logger.Info("Deleting all interfaces")
 			/* stop all radvd and delete all radvd config */
-			for _, iface := range s.interfaces {
+			for _, iface := range s.radvd.Interfaces {
 				if iface.Instance == 0 {
 					continue
 				}
@@ -209,12 +209,12 @@ func (s *RadvdManagerServer) handleRadvdInterfaces(w http.ResponseWriter, r *htt
 					return
 				}
 			}
-			s.interfaces = []*radvd.Interface{}
+			s.radvd.Interfaces = []*radvd.Interface{}
 			w.WriteHeader(http.StatusNoContent)
 			//s.printInterfaces()
 			return
 		}
-		existing, err := getInterfaceByInstance(s.interfaces, uint32(instance))
+		existing, err := getInterfaceByInstance(s.radvd.Interfaces, uint32(instance))
 		if err != nil {
 			s.logger.Error("Interface not found", "instance", instance)
 			w.WriteHeader(http.StatusNotFound)
@@ -228,9 +228,9 @@ func (s *RadvdManagerServer) handleRadvdInterfaces(w http.ResponseWriter, r *htt
 			return
 		}
 
-		for i, iface := range s.interfaces {
+		for i, iface := range s.radvd.Interfaces {
 			if iface == existing {
-				s.interfaces = append(s.interfaces[:i], s.interfaces[i+1:]...)
+				s.radvd.Interfaces = append(s.radvd.Interfaces[:i], s.radvd.Interfaces[i+1:]...)
 				break
 			}
 		}
@@ -245,7 +245,7 @@ func (s *RadvdManagerServer) handleRadvdInterfaces(w http.ResponseWriter, r *htt
 }
 
 func (s *RadvdManagerServer) CleanUp() error {
-	for _, iface := range s.interfaces {
+	for _, iface := range s.radvd.Interfaces {
 		if iface.Instance == 0 {
 			continue
 		}
