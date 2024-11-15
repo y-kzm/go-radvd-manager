@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -17,6 +18,8 @@ import (
 )
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	server, err := server.NewServer("localhost:8888", slog.With("component", "apiServer"))
 	if err != nil {
 		slog.Error("Failed to create server", "error", err.Error())

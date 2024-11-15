@@ -22,6 +22,8 @@ const (
 type radvdInterfaceAlias = radvd.Interface
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	execFlag := flag.String("x", "", "Mode: get, apply, update, delete all")
 	fileFlag := flag.String("f", "", "Policy config file")
 	flag.Parse()
