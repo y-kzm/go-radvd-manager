@@ -1,0 +1,36 @@
+rules:
+  - id: 1
+    description: ""
+    prefixes: 
+      - "2001:db8:1::/64"
+      - "2001:db8:2::/64"
+    nexthop: "fc00:abcd::a"
+  - id: 2
+    description: ""
+    prefixes: 
+      - "2001:db8:3::/64"
+      - "2001:db8:4::/64"
+    nexthop: "fc00:abcd::b"
+  - id: 998
+    description: ""
+    prefixes: 
+      - "::/0"
+    nexthop: "fc00:abcd::a"
+  - id: 999
+    description: ""
+    prefixes: 
+      - "::/0"
+    nexthop: "fc00:abcd::b"
+groups:
+  - id: 100
+    description: "hogehoge"
+    rules: [1, 998]
+    members:
+      - "fe80::1"
+      - "fe80::2"
+  - id: 200
+    description: "fugafuga"
+    rules: [2, 999]
+    members:
+      - "fe80::3"
+      - "fe80::4"
