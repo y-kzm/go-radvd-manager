@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 
 	radvd "github.com/y-kzm/go-radvd-manager"
 	client "github.com/y-kzm/go-radvd-manager/cmd/internal"
@@ -58,6 +59,7 @@ func main() {
 				for _, i := range instances {
 					if i.RouterID == c.Server {
 						// gorutine for each instance in the client
+						instanceWg.Add(1)
 						go func(instance *radvd.Instance) {
 							defer instanceWg.Done()
 							err := c.CreateInstance(int(i.ID), instance)
@@ -71,6 +73,7 @@ func main() {
 			}(c)
 		}
 		clientWg.Wait()
+		time.Sleep(5 * time.Second)
 	case "update":
 		break
 	case "delete":
