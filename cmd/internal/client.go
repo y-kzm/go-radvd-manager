@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	path = "/rest/data/radvd:instances/"
+	pathInstance  = "/rest/data/radvd:instances/"
+	pathInstances = "/rest/data/radvd:instances"
 )
 
 type RadvdManagerClient struct {
@@ -50,7 +51,7 @@ func GetSiteExitRouters(instances []*radvd.Instance) []string {
 
 // [GET] /rest/data/radvd:instances/{instance}
 func (c *RadvdManagerClient) GetInstance(id int) (*radvd.Instance, error) {
-	url := c.host + path + strconv.Itoa(id)
+	url := c.host + pathInstance + strconv.Itoa(id)
 	res, err := c.Client.Get(url)
 	if err != nil {
 		return nil, err
@@ -74,7 +75,7 @@ func (c *RadvdManagerClient) GetInstance(id int) (*radvd.Instance, error) {
 
 // [GET] /rest/data/radvd:instances
 func (c *RadvdManagerClient) GetInstances() error {
-	url := c.host + path
+	url := c.host + pathInstances
 	res, err := c.Client.Get(url)
 	if err != nil {
 		return err
@@ -101,7 +102,7 @@ func (c *RadvdManagerClient) CreateInstance(id int, instance *radvd.Instance) er
 	if err != nil {
 		log.Fatalf("failed to marshal struct to JSON: %v", err)
 	}
-	url := c.host + path + strconv.Itoa(id)
+	url := c.host + pathInstance + strconv.Itoa(id)
 	res, err := c.Post(url, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
@@ -128,7 +129,7 @@ func (c *RadvdManagerClient) DeleteInstance(instance int) error {
 
 // [DELETE] /rest/data/radvd:instances
 func (c *RadvdManagerClient) DeleteInstances() error {
-	url := c.host + path
+	url := c.host + pathInstances
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		log.Fatalf("failed to create request: %v", err)
