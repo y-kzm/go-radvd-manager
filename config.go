@@ -31,13 +31,13 @@ type Rule struct {
 }
 
 type Group struct {
-	// ID          int      `yaml:"id" validate:"required"`
+	ID          int      `yaml:"id" validate:"required"`
 	Description string   `yaml:"description"`
 	Rules       []int    `yaml:"rules" validate:"dive,chechk_rule_exist,required"`
 	Members     []string `yaml:"members" validate:"dive,ipv6,required"`
 }
 
-func ParseConfig(policy *Policy) ([]*Instance, error) {
+func ParsePolicy(policy *Policy) ([]*Instance, error) {
 	instances := []*Instance{}
 	parameters, err := LoadParameterFile()
 	if err != nil {
@@ -119,7 +119,7 @@ func LoadParameterFile() ([]*Instance, error) {
 		return nil, err
 	}
 	instances := []*Instance{}
-	if err = yaml.Unmarshal(fileData, instances); err != nil {
+	if err = yaml.Unmarshal(fileData, &instances); err != nil {
 		return nil, err
 	}
 

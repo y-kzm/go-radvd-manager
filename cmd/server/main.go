@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -14,11 +13,12 @@ import (
 	server "github.com/y-kzm/go-radvd-manager/cmd/internal"
 )
 
-func main() {
-	port := flag.String("port", "8888", "Port number for the server")
-	flag.Parse()
+const (
+	port = 12345
+)
 
-	endpoint := fmt.Sprintf("[::]:%s", *port)
+func main() {
+	endpoint := fmt.Sprintf("[::]:%d", port)
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)

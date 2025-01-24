@@ -12,7 +12,7 @@ func GenerateRadvdConfigFile(i *Instance, filePath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to parse template: %v", err)
 	}
-	conf, err := os.Create("/etc/radvd.d/" + strconv.Itoa(int(i.ID)) + ".conf")
+	conf, err := os.Create(filePath + strconv.Itoa(int(i.ID)) + ".conf")
 	if err != nil {
 		return fmt.Errorf("failed to create file: %v", err)
 	}
