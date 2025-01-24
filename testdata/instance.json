@@ -1,5 +1,7 @@
 {
-  "instance": 2,
+  "id": 5,
+  "pid": 0,
+  "router_id": "::1",
   "name": "docker0",
   "adv_send_advert": true,
   "min_rtr_adv_interval": 3,

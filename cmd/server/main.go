@@ -1,65 +1,51 @@
-/**
- * This is the main entry point for the radvd-manager server.
- *
- */
 package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"golang.org/x/sync/errgroup"
+	radvd "github.com/y-kzm/go-radvd-manager"
+	server "github.com/y-kzm/go-radvd-manager/cmd/internal"
+)
 
-	"github.com/y-kzm/go-radvd-manager/internal/server"
+const (
+	port = 12345
 )
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	endpoint := fmt.Sprintf("[::]:%d", port)
 
-	server, err := server.NewServer("[::]:8888", slog.With("component", "apiServer"))
-	if err != nil {
-		slog.Error("Failed to create server", "error", err.Error())
-		return
-	}
-
-	// Create a channel to receive OS signals
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 
-	// Create an error group for concurrent goroutines
-	group, ctx := errgroup.WithContext(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	// Goroutine to start the HTTP server
-	group.Go(func() error {
-		slog.Info("Starting HTTP server")
-		if err := server.ListenAndServe(); err != nil {
-			return err
+	instances := []*radvd.Instance{}
+
+	go func() {
+		srv := server.NewServer(endpoint, instances, slog.With("component", "radvdManagerServer"))
+		go func() {
+			<-signalChan
+			slog.Info("Received signal, shutting down server")
+
+			srv.CleanUp()
+			if err := srv.Shutdown(context.Background()); err != nil {
+				slog.Error("Failt to shutdown server", "error", err.Error())
+			}
+			cancel()
+		}()
+		slog.Info("Starting HTTP server", "endpoint", endpoint)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("Failed to start server", "error", err.Error())
 		}
-		return nil
-	})
+	}()
 
-	// Goroutine to handle received signals and shut down the server
-	group.Go(func() error {
-		// Receive signal directly, no need for select
-		sig := <-signalChan
-		slog.Info("Received signal", "signal", sig)
-		server.CleanUp()
-		if err := server.Shutdown(ctx); err != nil {
-			slog.Error("Server shutdown failed", "error", err.Error())
-		} else {
-			slog.Info("Server shutdown complete")
-		}
-		return nil
-	})
-
-	// Wait for all goroutines to finish
-	if err := group.Wait(); err != nil {
-		slog.Info("Server stopped with", "error", err.Error())
-	} else {
-		slog.Info("Server gracefully stopped")
-	}
+	<-ctx.Done()
+	slog.Info("Shutting down gracefully")
 }
