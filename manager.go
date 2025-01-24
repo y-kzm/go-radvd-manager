@@ -111,6 +111,9 @@ func ReloadRadvd(id int) error {
 }
 
 func StopRadvd(id int) error {
+	if id == 0 {
+		return nil
+	}
 	pidFile := "/var/run/radvd/radvd." + strconv.Itoa(id) + ".pid"
 	pidStr, err := os.ReadFile(pidFile)
 	if err != nil {
