@@ -18,9 +18,12 @@ const (
 
 func main() {
 	execFlag := flag.String("x", "", "[status|apply|update|delete]")
-	fileFlag := flag.String("f", "policy.yaml", "Policy file")
+	fileFlag := flag.String("f", "", "Policy file")
 	flag.Parse()
 
+	if *execFlag == "" {
+		log.Fatalf("Use -x [status|apply|update|delete]")
+	}
 	policy, err := radvd.LoadPolicyFile(*fileFlag)
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
@@ -30,7 +33,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to convert policy to radvd instance: %v", err)
 	}
-
 	// create clients
 	routers := client.GetSiteExitRouters(instances)
 	clients := make([]*client.RadvdManagerClient, len(routers))
@@ -47,7 +49,7 @@ func main() {
 				log.Fatalf("Failed to get radvd instances: %v", err)
 			}
 		}
-		//show_status(clients)
+		show_status(clients)
 	case "apply":
 		var clientWg sync.WaitGroup
 		for _, c := range clients {
@@ -65,6 +67,8 @@ func main() {
 							err := c.CreateInstance(int(i.ID), instance)
 							if err != nil {
 								log.Printf("Failed to create radvd instance: %v", err)
+							} else {
+								log.Printf("+ Created radvd instance (id: %d) on %s", i.ID, c.Server)
 							}
 						}(i)
 					}
@@ -89,6 +93,7 @@ func main() {
 }
 
 func show_policy(policy *radvd.Policy) {
+	fmt.Println("[Local Policy]")
 	fmt.Printf("%-5s %-40s %-20s\n", "ID", "Prefixes", "Nexthop")
 	fmt.Println(strings.Repeat("-", 80))
 	for _, i := range policy.Rules {
@@ -102,4 +107,10 @@ func show_policy(policy *radvd.Policy) {
 		members := "[" + strings.Join(i.Members, " ") + "]"
 		fmt.Printf("%-20s %-30s\n", rules, members)
 	}
+	fmt.Println()
+}
+
+func show_status(clients []*client.RadvdManagerClient) {
+	fmt.Println("[Remote Status]")
+	// TODO:
 }
