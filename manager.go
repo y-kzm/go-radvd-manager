@@ -94,7 +94,7 @@ func ReloadRadvd(id int) error {
 	if err != nil {
 		return fmt.Errorf("failed to read PID file: %w", err)
 	}
-	pid, err := strconv.Atoi(string(pidStr))
+	pid, err := strconv.Atoi(strings.TrimSpace(string(pidStr)))
 	if err != nil {
 		fmt.Println("Error:", err)
 		return fmt.Errorf("failed to convert PID to int: %w", err)
@@ -119,8 +119,7 @@ func StopRadvd(id int) error {
 	if err != nil {
 		return fmt.Errorf("error opening PID file: %w", err)
 	}
-
-	pid, err := strconv.Atoi(string(pidStr))
+	pid, err := strconv.Atoi(strings.TrimSpace(string(pidStr)))
 	if err != nil {
 		fmt.Println("Error:", err)
 		return fmt.Errorf("failed to convert PID to int: %w", err)
