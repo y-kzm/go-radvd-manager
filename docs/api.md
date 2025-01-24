@@ -11,7 +11,7 @@
 
 - `[GET]/rest/data/radvd:instances`: Get all instances information.
   ```
-  $ curl -s http://localhost:8888/rest/data/radvd:instances | jq .
+  $ curl -s http://localhost:12345/rest/data/radvd:instances | jq .
   ```
   ```json
   [
@@ -48,8 +48,8 @@
 
 - `[POST|PUT]/rest/data/radvd:instances/{instance}`: Start/Update radvd instance with specified id.
   ```
-  $ curl -X POST -H "Content-Type: application/yang-data+json" -d @testdata/instance.json http://localhost:8888/restconf/data/radvd:interfaces/5
-  $ curl -s http://localhost:8888/rest/data/radvd:instances/5 | jq 
+  $ curl -X POST -H "Content-Type: application/yang-data+json" -d @testdata/instance.json http://localhost:12345/restconf/data/radvd:interfaces/5
+  $ curl -s http://localhost:12345/rest/data/radvd:instances/5 | jq 
   ```
   > Note: The values of `{instance}` and `id:`in testdata must be the same.
   ```json
@@ -112,12 +112,12 @@
 - `[DELETE]/rest/data/radvd:instances`
   - Delete all radvd instances.
     ```
-    $ curl -X DELETE http://localhost:8888/restconf/data/radvd:interfaces
+    $ curl -X DELETE http://localhost:12345/restconf/data/radvd:interfaces
     ```
 - `[DELETE]/rest/data/radvd:instances/{intstance}`
   - Delete specified radvd instance.
     ```
-    $ curl -X DELETE http://localhost:8888/restconf/data/radvd:interfaces/5
+    $ curl -X DELETE http://localhost:12345/restconf/data/radvd:interfaces/5
     ```
 
 ## Responses
