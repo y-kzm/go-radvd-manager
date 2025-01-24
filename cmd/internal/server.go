@@ -141,6 +141,7 @@ func (s *RadvdManagerServer) handleInstance(w http.ResponseWriter, r *http.Reque
 			return
 		}
 		s.instances = append(s.instances, &new)
+		w.WriteHeader(http.StatusCreated)
 		return
 	case "PUT":
 	case "DELETE":
