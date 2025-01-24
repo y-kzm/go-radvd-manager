@@ -94,11 +94,11 @@ func main() {
 
 func show_policy(policy *radvd.Policy) {
 	fmt.Println("[Local Policy]")
-	fmt.Printf("%-5s %-40s %-20s\n", "ID", "Prefixes", "Nexthop")
+	fmt.Printf("%-12s %-40s %-20s\n", "ID(common)", "Prefixes", "Nexthop")
 	fmt.Println(strings.Repeat("-", 80))
 	for _, i := range policy.Rules {
 		prefixes := "[" + strings.Join(i.Prefixes, " ") + "]"
-		fmt.Printf("%-5d %-40s %-20s\n", i.ID, prefixes, i.Nexthop)
+		fmt.Printf("%-12d %-40s %-20s\n", i.ID, prefixes, i.Nexthop)
 	}
 	fmt.Println("\nRules                Members")
 	fmt.Println(strings.Repeat("-", 80))
@@ -112,5 +112,13 @@ func show_policy(policy *radvd.Policy) {
 
 func show_status(clients []*client.RadvdManagerClient) {
 	fmt.Println("[Remote Status]")
-	// TODO:
+	for _, c := range clients {
+		fmt.Printf("%-20s %-12s %-5s %-40s %-30s\n", "RouterID", "ID(common)", "PID", "Prefixes", "Clients")
+		fmt.Println(strings.Repeat("-", 80))
+		for _, i := range c.RemoteInstances {
+			prefixes := strings.Join(strings.Fields(fmt.Sprint(i.Prefixes)), " ")
+			fmt.Printf("%-20s %-12d %-5d %-40s %-30s\n", i.RouterID, i.ID, i.PID, prefixes, i.Clients)
+		}
+		fmt.Println()
+	}
 }
