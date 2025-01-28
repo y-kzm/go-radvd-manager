@@ -62,9 +62,11 @@ func (s *RadvdManagerServer) handleInstances(w http.ResponseWriter, r *http.Requ
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			s.logger.Info("Stopped radvd", "instance", i.ID)
+			if i.ID != 0 {
+				i = nil
+			}
 		}
-		s.instances = []*radvd.Instance{}
+		//s.instances = []*radvd.Instance{}
 		w.WriteHeader(http.StatusNoContent)
 		return
 	default:
