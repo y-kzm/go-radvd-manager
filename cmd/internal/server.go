@@ -155,10 +155,8 @@ func (s *RadvdManagerServer) handleInstance(w http.ResponseWriter, r *http.Reque
 func (s *RadvdManagerServer) CleanUp() error {
 	for _, i := range s.instances {
 		if err := radvd.StopRadvd(int(i.ID)); err != nil {
-			s.logger.Error("Failed to stop radvd", "error", err.Error())
 			continue
 		}
-		s.logger.Info("Stopped radvd", "instance", i.ID)
 	}
 	s.instances = []*radvd.Instance{}
 
@@ -183,5 +181,6 @@ func (s *RadvdManagerServer) CleanUp() error {
 		}
 	}
 
+	s.logger.Info("Stopped all radvd instances")
 	return nil
 }
