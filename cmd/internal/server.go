@@ -55,6 +55,7 @@ func (s *RadvdManagerServer) handleInstances(w http.ResponseWriter, r *http.Requ
 		w.WriteHeader(http.StatusOK)
 		return
 	case "DELETE":
+		var newInstances []*radvd.Instance
 		s.logger.Info("[DELETE]", "from", r.RemoteAddr)
 		for _, i := range s.instances {
 			if err := radvd.StopRadvd(int(i.ID)); err != nil {
@@ -63,9 +64,10 @@ func (s *RadvdManagerServer) handleInstances(w http.ResponseWriter, r *http.Requ
 				return
 			}
 			if i.ID != 0 {
-				i = nil
+				newInstances = append(newInstances, i)
 			}
 		}
+		s.instances = newInstances
 		//s.instances = []*radvd.Instance{}
 		w.WriteHeader(http.StatusNoContent)
 		return
